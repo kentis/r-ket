@@ -3,12 +3,17 @@ import sys
 import threading
 from time import sleep
 import docker
+import json
 docker_client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+api_client = docker.APIClient(base_url='unix://var/run/docker.sock')
 
 def print_stats_stream(stream,out_stream):
     for line in stream:
         out_stream.write(line)
-        
+
+def inspect_container(container_id):
+    return api_client.inspect_container(container_id)
+
 def create_docker_contatiner(container_name, image, command, out_stream):
     container = docker_client.containers.create(image,
                     command,
@@ -23,12 +28,15 @@ def create_docker_contatiner(container_name, image, command, out_stream):
     # print("start container: {}".format(container_name))
     s = container.start()
     w = container.wait()
-    # print(s)
-    # print(w)
-    # sleep(5)
-    container.stop()
+    #print(s)
+    #print(w)
+    sleep(1)
+    stop = container.stop()
+    #print(stop)
+    
+    print(json.dumps(inspect_container(container.id)))
     container.remove()
-    statsStream.close()    
+    statsStream.close()
 
     
     
